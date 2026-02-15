@@ -4,15 +4,8 @@ import com.dems.util.DBConnection;
 import java.sql.*;
 
 public class EvidenceDAO {
-
-    /**
-     * Saves evidence metadata and returns the generated Evidence ID.
-     * Returns -1 if the insertion fails.
-     */
     public int addEvidence(String name, String path, String hash, String desc, int userId) {
         String query = "INSERT INTO evidence (file_name, file_path, file_hash, description, uploaded_by) VALUES (?, ?, ?, ?, ?)";
-
-        // We ask MySQL to return the auto-incremented ID
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             
@@ -22,18 +15,11 @@ public class EvidenceDAO {
             pstmt.setString(4, desc);
             pstmt.setInt(5, userId);
 
-            int affectedRows = pstmt.executeUpdate();
-            
-            if (affectedRows > 0) {
-                // Retrieve the generated ID
+            if (pstmt.executeUpdate() > 0) {
                 ResultSet rs = pstmt.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
+                if (rs.next()) return rs.getInt(1);
             }
-        } catch (SQLException e) {
-            System.err.println("Database Error: " + e.getMessage());
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
         return -1;
     }
 }
